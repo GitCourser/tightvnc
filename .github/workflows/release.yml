@@ -1,0 +1,282 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "发布使用的版本号（无 tag 时手动输入，如 2.8.88）"
+        required: false
+        default: ""
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  SOLUTION: tightvnc2017.sln
+  # 工程默认 v141_xp + SDK 8.1，GitHub windows-2022 无此工具集，运行时覆盖
+  PLATFORM_TOOLSET: v143
+  WINDOWS_SDK: "10.0"
+
+jobs:
+  build-and-release:
+    name: Build Windows & Draft Release
+    runs-on: windows-2022
+    timeout-minutes: 90
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Resolve version
+        id: ver
+        shell: pwsh
+        run: |
+          if ("${{ github.ref_type }}" -eq "tag") {
+            $tag = "${{ github.ref_name }}"
+          } else {
+            $tag = "${{ inputs.tag }}"
+          }
+          if ([string]::IsNullOrWhiteSpace($tag)) {
+            $tag = "v0.0.0-ci.${{ github.run_number }}"
+          }
+          if (-not $tag.StartsWith("v")) { $tag = "v$tag" }
+          $version = $tag.TrimStart("v")
+          "tag=$tag" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          "version=$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          Write-Host "tag=$tag version=$version"
+
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Install WiX Toolset
+        shell: pwsh
+        run: |
+          function Find-WixBin {
+            $candidates = @(
+              "C:\Program Files (x86)\WiX Toolset v3.14\bin",
+              "C:\Program Files (x86)\WiX Toolset v3.11\bin",
+              "C:\Program Files\WiX Toolset v3.14\bin"
+            )
+            foreach ($c in $candidates) {
+              if (Test-Path (Join-Path $c "candle.exe")) { return $c }
+            }
+            $found = Get-ChildItem "C:\Program Files (x86)", "C:\Program Files" -Directory -Filter "WiX*" -ErrorAction SilentlyContinue |
+              ForEach-Object { Join-Path $_.FullName "bin" } |
+              Where-Object { Test-Path (Join-Path $_ "candle.exe") } |
+              Select-Object -First 1
+            return $found
+          }
+
+          $wixBin = Find-WixBin
+          if (-not $wixBin) {
+            Write-Host "WiX not found, installing via chocolatey..."
+            choco install wixtoolset -y --no-progress
+            if ($LASTEXITCODE -ne 0) {
+              throw "choco install wixtoolset failed with exit code $LASTEXITCODE"
+            }
+            $wixBin = Find-WixBin
+          } else {
+            Write-Host "Using existing WiX installation"
+          }
+
+          if (-not $wixBin -or -not (Test-Path (Join-Path $wixBin "candle.exe"))) {
+            throw "WiX candle.exe not found"
+          }
+
+          "WIX_BIN=$wixBin" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          Write-Host "WIX_BIN=$wixBin"
+          Write-Host "candle.exe exists: $(Test-Path (Join-Path $wixBin 'candle.exe'))"
+
+      - name: Prepare LICENSE for installer
+        shell: pwsh
+        run: |
+          # components.wxs 需要仓库根目录 LICENSE.txt
+          if (-not (Test-Path "LICENSE.txt")) {
+            Copy-Item "wix-installer\LICENSE.txt" "LICENSE.txt"
+          }
+
+      - name: Build Release|Win32
+        shell: pwsh
+        run: |
+          msbuild $env:SOLUTION `
+            /m `
+            /restore:false `
+            /p:Configuration=Release `
+            /p:Platform=Win32 `
+            /p:PlatformToolset=$env:PLATFORM_TOOLSET `
+            /p:WindowsTargetPlatformVersion=$env:WINDOWS_SDK `
+            /p:PreferredToolArchitecture=x64 `
+            /v:minimal
+
+      - name: Build Release|x64
+        shell: pwsh
+        run: |
+          msbuild $env:SOLUTION `
+            /m `
+            /restore:false `
+            /p:Configuration=Release `
+            /p:Platform=x64 `
+            /p:PlatformToolset=$env:PLATFORM_TOOLSET `
+            /p:WindowsTargetPlatformVersion=$env:WINDOWS_SDK `
+            /p:PreferredToolArchitecture=x64 `
+            /v:minimal
+
+      - name: Verify build outputs
+        shell: pwsh
+        run: |
+          $required = @(
+            "Release\tvnserver.exe",
+            "Release\tvnviewer.exe",
+            "Release\screenhooks32.dll",
+            "Release\hookldr.exe",
+            "Release\setup-helper.dll",
+            "x64\Release\tvnserver.exe",
+            "x64\Release\tvnviewer.exe",
+            "x64\Release\screenhooks64.dll",
+            "x64\Release\setup-helper.dll"
+          )
+          $missing = @()
+          foreach ($f in $required) {
+            if (Test-Path $f) {
+              $item = Get-Item $f
+              Write-Host ("OK  {0,-40} {1,12:N0} bytes" -f $f, $item.Length)
+            } else {
+              Write-Host "MISSING  $f"
+              $missing += $f
+            }
+          }
+          if ($missing.Count -gt 0) {
+            throw ("Missing build outputs:`n" + ($missing -join "`n"))
+          }
+
+      - name: Package portable binaries
+        id: pkg
+        shell: pwsh
+        run: |
+          $version = "${{ steps.ver.outputs.version }}"
+          $dist = "dist"
+          New-Item -ItemType Directory -Force -Path $dist | Out-Null
+
+          function New-PortableZip {
+            param(
+              [string]$Name,
+              [string[]]$Files
+            )
+            $stage = Join-Path $env:RUNNER_TEMP $Name
+            if (Test-Path $stage) { Remove-Item $stage -Recurse -Force }
+            New-Item -ItemType Directory -Force -Path $stage | Out-Null
+            foreach ($src in $Files) {
+              if (-not (Test-Path $src)) { throw "Missing file for package ${Name}: $src" }
+              Copy-Item $src (Join-Path $stage (Split-Path $src -Leaf))
+            }
+            if (Test-Path "LICENSE.txt") {
+              Copy-Item "LICENSE.txt" (Join-Path $stage "LICENSE.txt")
+            } elseif (Test-Path "wix-installer\LICENSE.txt") {
+              Copy-Item "wix-installer\LICENSE.txt" (Join-Path $stage "LICENSE.txt")
+            }
+            $zip = Join-Path $dist "$Name.zip"
+            if (Test-Path $zip) { Remove-Item $zip -Force }
+            Compress-Archive -Path (Join-Path $stage "*") -DestinationPath $zip -Force
+            Write-Host "Created $zip"
+            return $zip
+          }
+
+          $win32Zip = New-PortableZip -Name "tightvnc-$version-win32" -Files @(
+            "Release\tvnserver.exe",
+            "Release\tvnviewer.exe",
+            "Release\screenhooks32.dll",
+            "Release\hookldr.exe",
+            "wix-installer\files32\sas.dll"
+          )
+
+          $win64Zip = New-PortableZip -Name "tightvnc-$version-win64" -Files @(
+            "x64\Release\tvnserver.exe",
+            "x64\Release\tvnviewer.exe",
+            "Release\screenhooks32.dll",
+            "x64\Release\screenhooks64.dll",
+            "Release\hookldr.exe",
+            "wix-installer\files64\sas.dll"
+          )
+
+          "win32_zip=$win32Zip" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          "win64_zip=$win64Zip" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+
+      - name: Build MSI installers
+        shell: pwsh
+        run: |
+          $version = "${{ steps.ver.outputs.version }}"
+          $env:Path = "$env:WIX_BIN;$env:Path"
+          # make-msi.bat 参数: <32位名> <64位名> [NoLicense=1] [额外宏]
+          $name32 = "tightvnc-$version-setup-32bit"
+          $name64 = "tightvnc-$version-setup-64bit"
+
+          Push-Location wix-installer
+          try {
+            cmd /c "make-msi.bat $name32 $name64"
+            if ($LASTEXITCODE -ne 0) { throw "make-msi.bat failed with exit code $LASTEXITCODE" }
+          } finally {
+            Pop-Location
+          }
+
+          $msi32 = "Release\$name32.msi"
+          $msi64 = "x64\Release\$name64.msi"
+          New-Item -ItemType Directory -Force -Path dist | Out-Null
+          foreach ($m in @($msi32, $msi64)) {
+            if (-not (Test-Path $m)) { throw "MSI not produced: $m" }
+            $item = Get-Item $m
+            Write-Host ("OK  {0,-50} {1,12:N0} bytes" -f $m, $item.Length)
+            Copy-Item $m "dist\"
+          }
+
+      - name: List release files
+        shell: pwsh
+        run: |
+          Get-ChildItem dist -File | ForEach-Object {
+            "{0,-50} {1,12:N0} bytes" -f $_.Name, $_.Length
+          }
+
+      - name: Create draft GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.ver.outputs.tag }}
+          name: TightVNC ${{ steps.ver.outputs.version }}
+          draft: true
+          prerelease: false
+          generate_release_notes: true
+          fail_on_unmatched_files: true
+          # 手动触发且 tag 不存在时，基于当前 commit 创建 tag
+          target_commitish: ${{ github.sha }}
+          files: |
+            dist/*.zip
+            dist/*.msi
+          body: |
+            ## TightVNC ${{ steps.ver.outputs.version }}
+
+            由 GitHub Actions 自动编译的 **草稿** 发布。
+
+            ### 下载说明
+            | 文件 | 说明 |
+            | --- | --- |
+            | `tightvnc-${{ steps.ver.outputs.version }}-win32.zip` | 32 位绿色包 |
+            | `tightvnc-${{ steps.ver.outputs.version }}-win64.zip` | 64 位绿色包 |
+            | `tightvnc-${{ steps.ver.outputs.version }}-setup-32bit.msi` | 32 位安装包 |
+            | `tightvnc-${{ steps.ver.outputs.version }}-setup-64bit.msi` | 64 位安装包 |
+
+            ### 构建信息
+            - Solution: `tightvnc2017.sln`
+            - Configuration: `Release`
+            - PlatformToolset: `${{ env.PLATFORM_TOOLSET }}`（覆盖工程默认 `v141_xp`）
+            - Windows SDK: `${{ env.WINDOWS_SDK }}`
+            - Runner: `windows-2022`
+            - Commit: `${{ github.sha }}`
+
+            > 确认无误后，请在 GitHub Releases 页面将草稿改为正式发布。
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
