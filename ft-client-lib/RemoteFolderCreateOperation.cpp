@@ -51,7 +51,7 @@ void RemoteFolderCreateOperation::start()
   // Logging
   StringStorage message;
 
-  message.format(_T("Creating remote folder '%s'"),
+  message.format(_T("正在创建远程文件夹“%s”"),
                  m_pathToTargetFile.getString());
 
   notifyInformation(message.getString());
@@ -74,7 +74,7 @@ void RemoteFolderCreateOperation::onLastRequestFailedReply(DataInputStream *inpu
   // Logging
   StringStorage message;
 
-  message.format(_T("Error: failed to create remote folder '%s'"),
+  message.format(_T("错误：无法创建远程文件夹“%s”"),
                  m_pathToTargetFile.getString());
 
   notifyError(message.getString());

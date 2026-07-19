@@ -73,7 +73,7 @@ void AboutDialog::openUrl(const TCHAR *url)
 BOOL AboutDialog::onInitDialog()
 {
   // Update product version string.
-  StringStorage versionString(_T("unknown"));
+  StringStorage versionString(_T("未知"));
   try {
     StringStorage binaryPath;
     Environment::getCurrentModulePath(&binaryPath);

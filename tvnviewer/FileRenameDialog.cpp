@@ -41,8 +41,8 @@ BOOL FileRenameDialog::onInitDialog()
 {
   NewFolderDialog::onInitDialog();
 
-  m_label.setText(_T("New file name:"));
-  m_ctrlThis.setText(_T("Rename file"));
+  m_label.setText(_T("新文件名："));
+  m_ctrlThis.setText(_T("重命名文件"));
 
   return TRUE;
 }

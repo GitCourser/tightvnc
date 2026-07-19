@@ -79,8 +79,8 @@ void LocalFilesDeleteOperation::execute()
 
     StringStorage message;
 
-    message.format(_T("Deleting local '%s' %s"), pathToTargetFile.getString(),
-                   file.isDirectory() ? _T("folder") : _T("file"));
+    message.format(_T("正在删除本地“%s”%s"), pathToTargetFile.getString(),
+                   file.isDirectory() ? _T("文件夹") : _T("文件"));
 
     notifyInformation(message.getString());
 
@@ -132,7 +132,7 @@ bool LocalFilesDeleteOperation::deleteFile(File *file)
     } else {
       StringStorage message;
 
-      message.format(_T("Error: failed to get file list in local folder '%s'"),
+      message.format(_T("错误：无法获取本地文件夹“%s”中的文件列表"),
                      pathToTargetFile.getString());
 
       notifyError(message.getString());
@@ -144,9 +144,9 @@ bool LocalFilesDeleteOperation::deleteFile(File *file)
   if (!returnVal) {
     StringStorage message;
 
-    message.format(_T("Error: failed to remove local '%s' %s"),
+    message.format(_T("错误：无法删除本地“%s”%s"),
                    pathToTargetFile.getString(),
-                   file->isDirectory() ? _T("folder") : _T("file"));
+                   file->isDirectory() ? _T("文件夹") : _T("文件"));
 
     notifyError(message.getString());
   } // if failed to remove

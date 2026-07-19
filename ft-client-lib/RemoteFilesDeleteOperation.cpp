@@ -107,7 +107,7 @@ void RemoteFilesDeleteOperation::onLastRequestFailedReply(DataInputStream *input
   getRemotePath(m_toDelete, m_pathToTargetRoot.getString(), &remotePath);
 
   StringStorage message;
-  message.format(_T("Error: %s ('%s')"), errorMessage.getString(),
+  message.format(_T("错误：%s（“%s”）"), errorMessage.getString(),
                  remotePath.getString());
 
   notifyError(message.getString());
@@ -143,8 +143,8 @@ void RemoteFilesDeleteOperation::remove(bool removeIfFolder)
       (!fileInfo->isDirectory())) && (m_toDelete->getFirst()->getParent() == NULL)) {
     StringStorage message;
 
-    message.format(_T("Deleting remote '%s' %s"), remotePath.getString(),
-                   fileInfo->isDirectory() ? _T("folder") : _T("file"));
+    message.format(_T("正在删除远程“%s”%s"), remotePath.getString(),
+                   fileInfo->isDirectory() ? _T("文件夹") : _T("文件"));
 
     notifyInformation(message.getString());
   }

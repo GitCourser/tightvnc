@@ -202,7 +202,7 @@ void DownloadOperation::onDownloadEndReply(DataInputStream *input)
   try {
     m_file->setLastModified(m_replyBuffer->getDownloadLastModified());
   } catch (...) {
-    notifyFailedToDownload(_T("Cannot set modification time"));
+    notifyFailedToDownload(_T("无法设置修改时间"));
   }
 
   delete m_file;
@@ -252,8 +252,8 @@ void DownloadOperation::startDownload()
   if (m_toCopy->getFirst()->getParent() == NULL) {
     StringStorage message;
 
-    message.format(_T("Downloading '%s' %s"), m_pathToTargetFile.getString(),
-                   fileInfo->isDirectory() ? _T("folder") : _T("file"));
+    message.format(_T("正在下载“%s”%s"), m_pathToTargetFile.getString(),
+                   fileInfo->isDirectory() ? _T("文件夹") : _T("文件"));
 
     notifyInformation(message.getString());
   } // logging
@@ -320,7 +320,7 @@ void DownloadOperation::processFolder()
       // Logging
       StringStorage message;
 
-      message.format(_T("Error: failed to create local folder '%s'"),
+      message.format(_T("错误：无法创建本地文件夹“%s”"),
                      m_pathToTargetFile.getString());
 
       notifyError(message.getString());
@@ -424,7 +424,7 @@ void DownloadOperation::notifyFailedToDownload(const TCHAR *errorDescription)
 {
   StringStorage message;
 
-  message.format(_T("Error: failed to download '%s' (%s)"),
+  message.format(_T("错误：无法下载“%s”（%s）"),
                  m_pathToSourceFile.getString(),
                  errorDescription);
 

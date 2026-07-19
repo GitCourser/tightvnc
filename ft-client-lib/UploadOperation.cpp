@@ -274,8 +274,8 @@ void UploadOperation::startUpload()
   if (m_toCopy->getFirst()->getParent() == NULL) {
     StringStorage message;
 
-    message.format(_T("Uploading '%s' %s"), m_pathToSourceFile.getString(),
-                   fileInfo->isDirectory() ? _T("folder") : _T("file"));
+    message.format(_T("正在上传“%s”%s"), m_pathToSourceFile.getString(),
+                   fileInfo->isDirectory() ? _T("文件夹") : _T("文件"));
 
     notifyInformation(message.getString());
   } // logging
@@ -304,7 +304,7 @@ void UploadOperation::processFolder()
     // Logging
     StringStorage message;
 
-    message.format(_T("Error: failed to get file list in local folder '%s'"),
+    message.format(_T("错误：无法获取本地文件夹“%s”中的文件列表"),
                    m_pathToSourceFile.getString());
 
     notifyError(message.getString());
@@ -545,9 +545,9 @@ void UploadOperation::notifyFailedToUpload(const TCHAR *errorDescription)
 {
   StringStorage message;
 
-  message.format(_T("Error: failed to upload '%s' %s (%s)"),
+  message.format(_T("错误：无法上传“%s”%s（%s）"),
                  m_pathToSourceFile.getString(),
-                 m_toCopy->getFileInfo()->isDirectory() ? _T("folder") : _T("file"),
+                 m_toCopy->getFileInfo()->isDirectory() ? _T("文件夹") : _T("文件"),
                  errorDescription);
 
   notifyError(message.getString());

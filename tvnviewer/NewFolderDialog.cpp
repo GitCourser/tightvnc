@@ -90,8 +90,8 @@ void NewFolderDialog::onOkButtonClick()
 
   if (fileName.isEmpty() || (fileName.findOneOf(_T("\\/")) != -1)) {
     MessageBox(m_ctrlThis.getWindow(),
-               _T("File name cannot be empty and cannot contain '/' or '\\' characters."),
-               _T("Incorrect File Name"),
+               _T("文件名不能为空，且不能包含“/”或“\\”字符。"),
+               _T("文件名不正确"),
                MB_OK | MB_ICONWARNING);
     m_fileNameTextBox.setFocus();
     return ;

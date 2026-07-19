@@ -62,7 +62,7 @@ void RemoteFileListOperation::onLastRequestFailedReply(DataInputStream *input)
   // Logging
   StringStorage message;
 
-  message.format(_T("Error: failed to get file list in remote folder '%s'"),
+  message.format(_T("错误：无法获取远程文件夹“%s”中的文件列表"),
                  m_remotePath.getString());
 
   notifyError(message.getString());

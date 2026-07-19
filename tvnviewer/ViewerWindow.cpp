@@ -1018,7 +1018,7 @@ bool ViewerWindow::onAuthError(WPARAM wParam)
 bool ViewerWindow::onError()
 {
   StringStorage error;
-  error.format(_T("Error in %s: %s"), ProductNames::VIEWER_PRODUCT_NAME, m_error.getMessage());
+  error.format(_T("%s 发生错误：%s"), ProductNames::VIEWER_PRODUCT_NAME, m_error.getMessage());
   MessageBox(getHWnd(),
              error.getString(),
              formatWindowName().getString(),

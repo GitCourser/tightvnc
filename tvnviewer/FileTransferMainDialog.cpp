@@ -231,8 +231,8 @@ bool FileTransferMainDialog::tryClose()
     return true;
   }
   if (MessageBox(m_ctrlThis.getWindow(),
-                 _T("Do you want to close file transfers and terminate current operation?"),
-                 _T("TightVNC File Transfers"),
+                 _T("是否关闭文件传输并终止当前操作？"),
+                 _T("TightVNC 文件传输"),
                  MB_YESNO | MB_ICONQUESTION) == IDYES) {
     // Set flag
     m_isClosing = true;
@@ -252,7 +252,7 @@ void FileTransferMainDialog::onCancelOperationButtonClick()
 {
   if (!m_ftCore->isNothingState()) {
   // Logging
-    StringStorage message(_T("Operation have been canceled by user"));
+    StringStorage message(_T("操作已被用户取消"));
     insertMessageIntoComboBox(message.getString());
 
     // Terminate current operation
@@ -269,8 +269,8 @@ void FileTransferMainDialog::onRenameRemoteButtonClick()
 
   if (fileInfo == NULL) {
     MessageBox(m_ctrlThis.getWindow(),
-               _T("No file selected."),
-               _T("Rename File"), MB_OK | MB_ICONWARNING);
+               _T("未选择文件。"),
+               _T("重命名文件"), MB_OK | MB_ICONWARNING);
     return ;
   }
 
@@ -316,8 +316,8 @@ void FileTransferMainDialog::onRemoveRemoteButtonClick()
 
   if (siCount == 0) {
     MessageBox(m_ctrlThis.getWindow(),
-               _T("No files selected."),
-               _T("Delete Files"), MB_OK | MB_ICONWARNING);
+               _T("未选择任何文件。"),
+               _T("删除文件"), MB_OK | MB_ICONWARNING);
     return ;
   }
 
@@ -331,8 +331,8 @@ void FileTransferMainDialog::onRemoveRemoteButtonClick()
   }
 
   if (MessageBox(m_ctrlThis.getWindow(),
-                 _T("Do you wish to delete the selected files?"),
-                 _T("Delete Files"),
+                 _T("是否删除所选文件？"),
+                 _T("删除文件"),
                  MB_YESNO | MB_ICONQUESTION) != IDYES) {
     delete[] indexes;
     delete[] filesInfo;
@@ -359,8 +359,8 @@ void FileTransferMainDialog::onRenameLocalButtonClick()
 
   if (fileInfo == NULL) {
     MessageBox(m_ctrlThis.getWindow(),
-               _T("No file selected."),
-               _T("Rename File"), MB_OK | MB_ICONWARNING);
+               _T("未选择文件。"),
+               _T("重命名文件"), MB_OK | MB_ICONWARNING);
     return ;
   }
 
@@ -394,7 +394,7 @@ void FileTransferMainDialog::onRenameLocalButtonClick()
 
     StringStorage message;
 
-    message.format(_T("Renaming local file '%s' to '%s'"),
+    message.format(_T("正在将本地文件“%s”重命名为“%s”"),
                    pathToOldFile.getString(), pathToNewFile.getString());
 
     insertMessageIntoComboBox(message.getString());
@@ -403,7 +403,7 @@ void FileTransferMainDialog::onRenameLocalButtonClick()
     File oldFile(pathToOldFile.getString());
 
     if (!oldFile.renameTo(pathToNewFile.getString())) {
-      message.format(_T("Error: failed to rename local '%s' file"),
+      message.format(_T("错误：无法重命名本地文件“%s”"),
                      pathToOldFile.getString());
 
       insertMessageIntoComboBox(message.getString());
@@ -422,8 +422,8 @@ void FileTransferMainDialog::onMkDirLocalButtonClick()
   // Not allow user to create folders in our "fake" root folder
   if (pathToFile.isEmpty()) {
     MessageBox(m_ctrlThis.getWindow(),
-               _T("It's not allowed to create new folder here."),
-               _T("New Folder"), MB_OK | MB_ICONWARNING);
+               _T("不允许在此处创建新文件夹。"),
+               _T("新建文件夹"), MB_OK | MB_ICONWARNING);
   }
 
   NewFolderDialog folderDialog(&m_ctrlThis);
@@ -440,7 +440,7 @@ void FileTransferMainDialog::onMkDirLocalButtonClick()
     // Logging
     StringStorage message;
 
-    message.format(_T("Creating local folder '%s'"), pathToFile.getString());
+    message.format(_T("正在创建本地文件夹“%s”"), pathToFile.getString());
 
     insertMessageIntoComboBox(message.getString());
 
@@ -449,7 +449,7 @@ void FileTransferMainDialog::onMkDirLocalButtonClick()
 
     // Failed to create local folder
     if (pathToFile.isEmpty() || !file.mkdir()) {
-      message.format(_T("Error: failed to create local folder '%s'"),
+      message.format(_T("错误：无法创建本地文件夹“%s”"),
                      pathToFile.getString());
 
       insertMessageIntoComboBox(message.getString());
@@ -465,8 +465,8 @@ void FileTransferMainDialog::onRemoveLocalButtonClick()
 
   if (siCount == 0) {
     MessageBox(m_ctrlThis.getWindow(),
-               _T("No files selected."),
-               _T("Delete Files"), MB_OK | MB_ICONWARNING);
+               _T("未选择任何文件。"),
+               _T("删除文件"), MB_OK | MB_ICONWARNING);
     return ;
   }
 
@@ -480,8 +480,8 @@ void FileTransferMainDialog::onRemoveLocalButtonClick()
   }
 
   if (MessageBox(m_ctrlThis.getWindow(),
-                 _T("Do you wish to delete the selected files?"),
-                 _T("Delete Files"),
+                 _T("是否删除所选文件？"),
+                 _T("删除文件"),
                  MB_YESNO | MB_ICONQUESTION) != IDYES) {
     delete[] indexes;
     delete[] filesInfo;
@@ -509,8 +509,8 @@ void FileTransferMainDialog::onUploadButtonClick()
 
   if (siCount == 0) {
     MessageBox(m_ctrlThis.getWindow(),
-               _T("No files selected."),
-               _T("Upload Files"), MB_OK | MB_ICONWARNING);
+               _T("未选择任何文件。"),
+               _T("上传文件"), MB_OK | MB_ICONWARNING);
     return ;
   }
 
@@ -524,8 +524,8 @@ void FileTransferMainDialog::onUploadButtonClick()
   }
 
   if (MessageBox(m_ctrlThis.getWindow(),
-                 _T("Do you wish to upload the selected files?"),
-                 _T("Upload Files"),
+                 _T("是否上传所选文件？"),
+                 _T("上传文件"),
                  MB_YESNO | MB_ICONQUESTION) != IDYES) {
     delete[] indexes;
     delete[] filesInfo;
@@ -554,8 +554,8 @@ void FileTransferMainDialog::onDownloadButtonClick()
 
   if (siCount == 0) {
     MessageBox(m_ctrlThis.getWindow(),
-               _T("No files selected."),
-               _T("Download Files"), MB_OK | MB_ICONWARNING);
+               _T("未选择任何文件。"),
+               _T("下载文件"), MB_OK | MB_ICONWARNING);
     return ;
   }
 
@@ -569,8 +569,8 @@ void FileTransferMainDialog::onDownloadButtonClick()
   }
 
   if (MessageBox(m_ctrlThis.getWindow(),
-                 _T("Do you wish to download the selected files?"),
-                 _T("Download Files"),
+                 _T("是否下载所选文件？"),
+                 _T("下载文件"),
                  MB_YESNO | MB_ICONQUESTION) != IDYES) {
     delete[] indexes;
     delete[] filesInfo;
@@ -797,7 +797,7 @@ void FileTransferMainDialog::initControls()
 void FileTransferMainDialog::raise(Exception &ex)
 {
   MessageBox(m_ctrlThis.getWindow(), ex.getMessage(),
-             _T("Exception"), MB_OK | MB_ICONERROR);
+             _T("异常"), MB_OK | MB_ICONERROR);
   throw ex;
 }
 
@@ -836,7 +836,7 @@ void FileTransferMainDialog::tryListLocalFolder(const TCHAR *pathToFile)
   } catch (...) {
     StringStorage message;
 
-    message.format(_T("Error: failed to get file list in local folder '%s'"),
+    message.format(_T("错误：无法获取本地文件夹“%s”中的文件列表"),
                    pathToFile);
 
     insertMessageIntoComboBox(message.getString());

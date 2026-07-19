@@ -55,7 +55,7 @@ void RemoteFileRenameOperation::start()
   // Logging
   StringStorage message;
 
-  message.format(_T("Renaming remote file '%s' to '%s'"),
+  message.format(_T("正在将远程文件“%s”重命名为“%s”"),
                  m_pathToSourceFile.getString(),
                  m_pathToTargetFile.getString());
 
@@ -80,7 +80,7 @@ void RemoteFileRenameOperation::onLastRequestFailedReply(DataInputStream *input)
   // Logging
   StringStorage message;
 
-  message.format(_T("Error: failed to rename remote '%s' file"),
+  message.format(_T("错误：无法重命名远程文件“%s”"),
                  m_pathToSourceFile.getString());
 
   notifyInformation(message.getString());
