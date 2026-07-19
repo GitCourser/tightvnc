@@ -23,6 +23,7 @@
 //
 
 #include "ViewerCmdLine.h"
+#include "client-config-lib/ViewerStorage.h"
 #include "config-lib/IniFileSettingsManager.h"
 #include "win-system/SystemException.h"
 
@@ -474,6 +475,11 @@ bool ViewerCmdLine::parseHost()
 
 void ViewerCmdLine::parseLogPath()
 {
+  // Portable mode keeps logs next to the executable only.
+  if (ViewerStorage::isPortable()) {
+    return;
+  }
+
   if (isPresent(LOG_PATH)) {
     m_config->setLogDir(m_options[LOG_PATH]);
   }

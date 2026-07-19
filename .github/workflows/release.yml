@@ -32,7 +32,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Resolve version
         id: ver
@@ -53,7 +53,7 @@ jobs:
           Write-Host "tag=$tag version=$version"
 
       - name: Setup MSBuild
-        uses: microsoft/setup-msbuild@v2
+        uses: microsoft/setup-msbuild@v3
 
       - name: Install WiX Toolset
         shell: pwsh
@@ -188,14 +188,7 @@ jobs:
             return $zip
           }
 
-          $win32Zip = New-PortableZip -Name "tightvnc-$version-win32" -Files @(
-            "Release\tvnserver.exe",
-            "Release\tvnviewer.exe",
-            "Release\screenhooks32.dll",
-            "Release\hookldr.exe",
-            "wix-installer\files32\sas.dll"
-          )
-
+          # 64-bit green package (server + viewer + hooks)
           $win64Zip = New-PortableZip -Name "tightvnc-$version-win64" -Files @(
             "x64\Release\tvnserver.exe",
             "x64\Release\tvnviewer.exe",
@@ -205,8 +198,23 @@ jobs:
             "wix-installer\files64\sas.dll"
           )
 
-          "win32_zip=$win32Zip" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          # Viewer-only portable package: tvnviewer.exe + empty tvnviewer.ini
+          $viewerName = "tightvnc-$version-viewer-portable"
+          $viewerStage = Join-Path $env:RUNNER_TEMP $viewerName
+          if (Test-Path $viewerStage) { Remove-Item $viewerStage -Recurse -Force }
+          New-Item -ItemType Directory -Force -Path $viewerStage | Out-Null
+          $viewerExe = "x64\Release\tvnviewer.exe"
+          if (-not (Test-Path $viewerExe)) { throw "Missing file for package ${viewerName}: $viewerExe" }
+          Copy-Item $viewerExe (Join-Path $viewerStage "tvnviewer.exe")
+          # Empty marker file enables portable mode (settings/history/log next to exe)
+          New-Item -ItemType File -Force -Path (Join-Path $viewerStage "tvnviewer.ini") | Out-Null
+          $viewerZip = Join-Path $dist "$viewerName.zip"
+          if (Test-Path $viewerZip) { Remove-Item $viewerZip -Force }
+          Compress-Archive -Path (Join-Path $viewerStage "*") -DestinationPath $viewerZip -Force
+          Write-Host "Created $viewerZip"
+
           "win64_zip=$win64Zip" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          "viewer_zip=$viewerZip" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
 
       - name: Build MSI installers
         shell: pwsh
@@ -214,6 +222,7 @@ jobs:
           $version = "${{ steps.ver.outputs.version }}"
           $env:Path = "$env:WIX_BIN;$env:Path"
           # make-msi.bat 参数: <32位名> <64位名> [NoLicense=1] [额外宏]
+          # 仍调用脚本构建两端，但仅发布 64 位安装包
           $name32 = "tightvnc-$version-setup-32bit"
           $name64 = "tightvnc-$version-setup-64bit"
 
@@ -225,15 +234,12 @@ jobs:
             Pop-Location
           }
 
-          $msi32 = "Release\$name32.msi"
           $msi64 = "x64\Release\$name64.msi"
           New-Item -ItemType Directory -Force -Path dist | Out-Null
-          foreach ($m in @($msi32, $msi64)) {
-            if (-not (Test-Path $m)) { throw "MSI not produced: $m" }
-            $item = Get-Item $m
-            Write-Host ("OK  {0,-50} {1,12:N0} bytes" -f $m, $item.Length)
-            Copy-Item $m "dist\"
-          }
+          if (-not (Test-Path $msi64)) { throw "MSI not produced: $msi64" }
+          $item = Get-Item $msi64
+          Write-Host ("OK  {0,-50} {1,12:N0} bytes" -f $msi64, $item.Length)
+          Copy-Item $msi64 "dist\"
 
       - name: List release files
         shell: pwsh
@@ -243,7 +249,7 @@ jobs:
           }
 
       - name: Create draft GitHub Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ steps.ver.outputs.tag }}
           name: TightVNC ${{ steps.ver.outputs.version }}
@@ -264,10 +270,13 @@ jobs:
             ### 下载说明
             | 文件 | 说明 |
             | --- | --- |
-            | `tightvnc-${{ steps.ver.outputs.version }}-win32.zip` | 32 位绿色包 |
             | `tightvnc-${{ steps.ver.outputs.version }}-win64.zip` | 64 位绿色包 |
-            | `tightvnc-${{ steps.ver.outputs.version }}-setup-32bit.msi` | 32 位安装包 |
+            | `tightvnc-${{ steps.ver.outputs.version }}-viewer-portable.zip` | Viewer 便携包（仅 tvnviewer.exe + 空 tvnviewer.ini） |
             | `tightvnc-${{ steps.ver.outputs.version }}-setup-64bit.msi` | 64 位安装包 |
+
+            ### Viewer 便携包说明
+            - 解压后目录内仅有 `tvnviewer.exe` 与空 `tvnviewer.ini`
+            - 空 `tvnviewer.ini` 启用便携模式：设置、连接历史、日志均写入程序目录，不写注册表 / AppData
 
             ### 构建信息
             - Solution: `tightvnc2017.sln`

@@ -67,7 +67,7 @@ void LoginDialog::enableConnect()
 
 void LoginDialog::updateHistory()
 {
-  ConnectionHistory *conHistory;
+  ViewerConnectionHistory *conHistory;
 
   StringStorage currentServer;
   m_server.getText(&currentServer);
@@ -92,7 +92,7 @@ void LoginDialog::updateHistory()
 
 void LoginDialog::onConnect()
 {
-  ConnectionHistory *conHistory = ViewerConfig::getInstance()->getConnectionHistory();
+  ViewerConnectionHistory *conHistory = ViewerConfig::getInstance()->getConnectionHistory();
 
   m_server.getText(&m_serverHost);
 

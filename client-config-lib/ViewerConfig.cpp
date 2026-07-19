@@ -25,8 +25,6 @@
 #include "ViewerConfig.h"
 
 #include "win-system/Environment.h"
-#include "win-system/RegistryKey.h"
-#include "win-system/Registry.h"
 
 #include "file-lib/File.h"
 
@@ -36,14 +34,9 @@
 ViewerConfig::ViewerConfig(const TCHAR registryPath[])
 : m_logLevel(0), m_listenPort(5500), m_historyLimit(32),
   m_showToolbar(true), m_promptOnFullscreen(true),
-  m_conHistory(&m_conHistoryKey, m_historyLimit),
+  m_conHistory(registryPath, m_historyLimit),
   m_logger(0)
 {
-  StringStorage registryKey;
-  registryKey.format(_T("%s\\History"), registryPath);
-  m_conHistoryKey.open(Registry::getCurrentUserKey(),
-                       registryKey.getString(),
-                       true);
 }
 
 ViewerConfig::~ViewerConfig()
@@ -202,7 +195,7 @@ const TCHAR *ViewerConfig::getPathToLogFile() const
   return m_pathToLogFile.getString();
 }
 
-ConnectionHistory *ViewerConfig::getConnectionHistory()
+ViewerConnectionHistory *ViewerConfig::getConnectionHistory()
 {
   AutoLock l(&m_cs);
   return &m_conHistory;

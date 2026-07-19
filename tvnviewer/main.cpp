@@ -23,16 +23,22 @@
 //
 
 #include "client-config-lib/ViewerConfig.h"
+#include "client-config-lib/ViewerSettingsManager.h"
+#include "client-config-lib/ViewerStorage.h"
 #include "log-writer/LogWriter.h"
 #include "TvnViewer.h"
 #include "ConnectionData.h"
 #include "ConnectionListener.h"
 #include "ViewerCmdLine.h"
+#include "NamingDefs.h"
 #include "util/ResourceLoader.h"
 
 int APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE,
                        LPTSTR lpCmdLine, int nCmdShow)
 {
+  // Mode is fixed for this process by presence of <exeDir>\tvnviewer.ini.
+  ViewerStorage::initialize(ConfigNames::VIEWER_INI_FILE_NAME);
+
   ViewerSettingsManager::initInstance(RegistryPaths::VIEWER_PATH);
   SettingsManager *sm = ViewerSettingsManager::getInstance();
 
@@ -46,7 +52,15 @@ int APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE,
   // resource-loader initialization
   ResourceLoader resourceLoader(hInstance);
   try {
-    config.initLog(LogNames::LOG_DIR_NAME, LogNames::VIEWER_LOG_FILE_STUB_NAME);
+    if (ViewerStorage::isPortable()) {
+      StringStorage executableFolder;
+      ViewerStorage::getExecutableFolder(&executableFolder);
+      config.initLog(executableFolder.getString(),
+                     LogNames::VIEWER_LOG_FILE_STUB_NAME,
+                     false);
+    } else {
+      config.initLog(LogNames::LOG_DIR_NAME, LogNames::VIEWER_LOG_FILE_STUB_NAME);
+    }
   }  catch (...) {
   }
 

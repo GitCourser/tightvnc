@@ -20,7 +20,13 @@
     <ClCompile Include="ViewerConfig.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ViewerConnectionHistory.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="ViewerSettingsManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ViewerStorage.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -34,7 +40,13 @@
     <ClInclude Include="ViewerConfig.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="ViewerConnectionHistory.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="ViewerSettingsManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ViewerStorage.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

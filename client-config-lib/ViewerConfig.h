@@ -27,12 +27,12 @@
 
 #include "util/StringStorage.h"
 #include "util/Singleton.h"
-#include "config-lib/ConnectionHistory.h"
 #include "log-writer/FileLogger.h"
 #include "thread/LocalMutex.h"
 #include "thread/AutoLock.h"
 
 #include "ConnectionConfig.h"
+#include "ViewerConnectionHistory.h"
 
 //
 // Contains base set of viewer configuration options.
@@ -96,7 +96,7 @@ public:
   const TCHAR *getPathToLogFile() const;
 
   // Returns connection history
-  ConnectionHistory *getConnectionHistory();
+  ViewerConnectionHistory *getConnectionHistory();
 
 protected:
   // TCP port for accepting incoming connection
@@ -115,9 +115,8 @@ protected:
   StringStorage m_pathToLogFile;
   StringStorage m_logName;
   FileLogger *m_logger;
-  // Connection history
-  RegistryKey m_conHistoryKey; // Used by m_conHistory
-  ConnectionHistory m_conHistory;
+  // Connection history (registry or portable INI)
+  ViewerConnectionHistory m_conHistory;
 private:
   // Critical section for synchronization
   mutable LocalMutex m_cs;

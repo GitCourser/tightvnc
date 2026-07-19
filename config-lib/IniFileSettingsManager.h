@@ -55,6 +55,9 @@ public:
 
   virtual bool deleteKey(const TCHAR *name);
 
+  // Delete the whole current application/section from the ini file.
+  bool deleteSection();
+
   virtual bool getString(const TCHAR *name, StringStorage *storage);
   // Remark: returns value if value is NULL.
   virtual bool setString(const TCHAR *name, const TCHAR *value);

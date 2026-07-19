@@ -40,6 +40,12 @@ public:
   static const TCHAR VIEWER_PATH[];
 };
 
+class ConfigNames
+{
+public:
+  static const TCHAR VIEWER_INI_FILE_NAME[];
+};
+
 class LogNames
 {
 public:

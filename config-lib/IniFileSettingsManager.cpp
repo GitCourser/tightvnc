@@ -88,6 +88,13 @@ bool IniFileSettingsManager::deleteKey(const TCHAR *name)
                                    NULL, m_pathToFile.getString()) == TRUE;
 }
 
+bool IniFileSettingsManager::deleteSection()
+{
+  // WritePrivateProfileString with NULL key and value removes the section.
+  return WritePrivateProfileString(m_appName.getString(), NULL,
+                                   NULL, m_pathToFile.getString()) == TRUE;
+}
+
 bool IniFileSettingsManager::getString(const TCHAR *name, StringStorage *storage)
 {
   if (!keyExist(name)) {

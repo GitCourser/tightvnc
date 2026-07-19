@@ -25,14 +25,44 @@
 #ifndef _CONNECTION_CONFIG_SETTINGS_MANAGER_H_
 #define _CONNECTION_CONFIG_SETTINGS_MANAGER_H_
 
-#include "config-lib/RegistrySettingsManager.h"
+#include "config-lib/SettingsManager.h"
 
-class ConnectionConfigSM : public RegistrySettingsManager
+// Selects registry or portable INI backend for per-host connection options.
+class ConnectionConfigSM : public SettingsManager
 {
 public:
   ConnectionConfigSM(const TCHAR registryPath[],
                      const TCHAR entryName[]);
   virtual ~ConnectionConfigSM();
+
+  virtual bool isOk();
+
+  virtual bool keyExist(const TCHAR *name);
+  virtual bool deleteKey(const TCHAR *name);
+
+  virtual bool getString(const TCHAR *name, StringStorage *storage);
+  virtual bool setString(const TCHAR *name, const TCHAR *value);
+
+  virtual bool getLong(const TCHAR *name, long *value);
+  virtual bool setLong(const TCHAR *name, long value);
+
+  virtual bool getBoolean(const TCHAR *name, bool *value);
+  virtual bool setBoolean(const TCHAR *name, bool value);
+
+  virtual bool getUINT(const TCHAR *name, UINT *value);
+  virtual bool setUINT(const TCHAR *name, UINT value);
+
+  virtual bool getInt(const TCHAR *name, int *value);
+  virtual bool setInt(const TCHAR *name, int value);
+
+  virtual bool getByte(const TCHAR *name, char *value);
+  virtual bool setByte(const TCHAR *name, char value);
+
+  virtual bool getBinaryData(const TCHAR *name, void *value, size_t *size);
+  virtual bool setBinaryData(const TCHAR *name, const void *value, size_t size);
+
+private:
+  SettingsManager *m_backend;
 };
 
 #endif

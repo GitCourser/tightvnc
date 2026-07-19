@@ -260,13 +260,17 @@
     <ClCompile Include="ConnectionConfig.cpp" />
     <ClCompile Include="ConnectionConfigSM.cpp" />
     <ClCompile Include="ViewerConfig.cpp" />
+    <ClCompile Include="ViewerConnectionHistory.cpp" />
     <ClCompile Include="ViewerSettingsManager.cpp" />
+    <ClCompile Include="ViewerStorage.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ConnectionConfig.h" />
     <ClInclude Include="ConnectionConfigSM.h" />
     <ClInclude Include="ViewerConfig.h" />
+    <ClInclude Include="ViewerConnectionHistory.h" />
     <ClInclude Include="ViewerSettingsManager.h" />
+    <ClInclude Include="ViewerStorage.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

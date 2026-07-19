@@ -545,7 +545,15 @@
 				>
 			</File>
 			<File
+				RelativePath=".\ViewerConnectionHistory.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\ViewerSettingsManager.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\ViewerStorage.cpp"
 				>
 			</File>
 		</Filter>
@@ -567,7 +575,15 @@
 				>
 			</File>
 			<File
+				RelativePath=".\ViewerConnectionHistory.h"
+				>
+			</File>
+			<File
 				RelativePath=".\ViewerSettingsManager.h"
+				>
+			</File>
+			<File
+				RelativePath=".\ViewerStorage.h"
 				>
 			</File>
 		</Filter>

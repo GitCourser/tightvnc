@@ -32,6 +32,8 @@ const TCHAR LogNames::LOG_DIR_NAME[] = _T("TightVNC");
 
 const TCHAR RegistryPaths::VIEWER_PATH[] = _T("Software\\TightVNC\\Viewer");
 
+const TCHAR ConfigNames::VIEWER_INI_FILE_NAME[] = _T("tvnviewer.ini");
+
 const TCHAR ApplicationNames::WINDOW_CLASS_NAME[] = 
   _T("TvnApplicationClass");
 
